@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visual Alankars</title>
+<style>
+  :root {
+    --bg: #12141a; --panel: #1b1e27; --line: #2a2f3c;
+    --text: #e8e6df; --muted: #7f8699;
+    --accent: #f5b642; --ghost: #4b5f8a; --trail: #8fb3ff;
+  }
+  :root[data-theme="light"] {
+    --bg: #f7f5ef; --panel: #ffffff; --line: #e3e0d8;
+    --text: #1d1f26; --muted: #6b7080;
+    --accent: #d98c00; --ghost: #a3b3d2; --trail: #3b6fd6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100vh; background: var(--bg); color: var(--text);
+    font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
+    display: grid; grid-template-columns: 280px 1fr;
+  }
+  aside {
+    background: var(--panel); border-right: 1px solid var(--line);
+    padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow: auto;
+  }
+  .head { display: flex; align-items: center; justify-content: space-between; }
+  h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  #theme { flex: 0; padding: 4px 10px; font-size: 12px; white-space: nowrap; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+  textarea {
+    width: 100%; height: 300px; background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px; padding: 10px;
+    font: 14px/1.6 ui-monospace, Menlo, monospace; resize: vertical;
+  }
+  .hint { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 6px; }
+  .err { color: #ff7b7b; font-size: 12px; white-space: pre-wrap; margin-top: 6px; }
+  .bpm { display: flex; gap: 10px; align-items: center; }
+  input[type=range] { flex: 1; accent-color: var(--accent); }
+  input[type=number] {
+    width: 64px; background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px; padding: 6px; font-size: 14px;
+  }
+  .buttons { display: flex; gap: 8px; }
+  button {
+    flex: 1; padding: 9px 0; border: 1px solid var(--line); background: var(--bg);
+    color: var(--text); border-radius: 6px; font-size: 14px; cursor: pointer;
+  }
+  button.primary { background: var(--accent); color: #1a1200; border-color: var(--accent); font-weight: 600; }
+  main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .readout {
+    padding: 16px 24px 0; font: 24px ui-monospace, Menlo, monospace;
+    letter-spacing: .2em; min-height: 46px; color: var(--muted);
+  }
+  .readout b { color: var(--accent); }
+  .status { padding: 2px 24px; font-size: 12px; color: var(--muted); }
+  svg { flex: 1; min-height: 0; width: 100%; }
+</style>
+</head>
+<body>
+<aside>
+  <div class="head">
+    <h1>Visual Alankars</h1>
+    <button id="theme"></button>
+  </div>
+  <div>
+    <label for="score">Alankar, one phrase per line</label>
+    <textarea id="score" spellcheck="false"></textarea>
+    <div class="hint">Notes: S R G M P D N. Lowercase = komal. Add ' for the upper octave (S') and . for the lower octave (N.).</div>
+    <div id="err" class="err"></div>
+  </div>
+  <div>
+    <label for="bpmNum">Tempo (BPM), one note per beat</label>
+    <div class="bpm">
+      <input type="range" id="bpmRange" min="30" max="240" value="80">
+      <input type="number" id="bpmNum" min="30" max="240" value="80">
+    </div>
+  </div>
+  <div class="buttons">
+    <button id="play" class="primary">Play</button>
+    <button id="reset">Reset</button>
+  </div>
+  <div class="hint">Space = play / pause</div>
+</aside>
+<main>
+  <div class="readout" id="readout"></div>
+  <div class="status" id="status"></div>
+  <svg id="stage"></svg>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const svg = $('stage'), scoreEl = $('score'), readout = $('readout');
+const statusEl = $('status'), errEl = $('err');
+const bpmRange = $('bpmRange'), bpmNum = $('bpmNum');
+const playBtn = $('play'), resetBtn = $('reset'), themeBtn = $('theme');
+
+const DEG = { s: 0, r: 1, g: 2, m: 3, p: 4, d: 5, n: 6 };
+const NAMES = ['S', 'R', 'G', 'M', 'P', 'D', 'N'];
+const octMark = o => o > 0 ? '̇'.repeat(o) : o < 0 ? '̣'.repeat(-o) : '';
+
+const DEFAULT_SCORE = `S
+S R S
+S R G R S
+S R G M G R S
+M
+M G M
+M G R G M
+M G R S R G M
+P
+P D P
+P D N D P
+P D N S' N D P
+S'
+S' N S'
+S' N D N S'
+S' N D P D N S'
+S' N D P M G R S`;
+
+// ---------- parsing ----------
+function parseNote(tok) {
+  const m = /^([SRGMPDNsrgmpdn])(['^.,]*)$/.exec(tok);
+  if (!m) return null;
+  let oct = 0;
+  for (const c of m[2]) oct += (c === "'" || c === '^') ? 1 : -1;
+  return { label: m[1] + octMark(oct), pitch: DEG[m[1].toLowerCase()] + oct * 7 };
+}
+
+function parseScore(text) {
+  const phrases = [], errors = [];
+  text.split('\n').forEach((line, i) => {
+    const toks = line.trim().split(/\s+/).filter(Boolean);
+    if (!toks.length) return;
+    const notes = [];
+    for (const t of toks) {
+      const n = parseNote(t);
+      if (!n) { errors.push(`Line ${i + 1}: can't read "${t}"`); return; }
+      notes.push(n);
+    }
+    phrases.push(notes);
+  });
+  return { phrases, errors };
+}
+
+// ---------- state ----------
+let phrases = [], steps = [];   // steps = flat list of {p, i}
+let pos = 0;                    // fractional beat position
+let bpm = 80, playing = false, lastT = 0;
+
+function loadScore() {
+  const r = parseScore(scoreEl.value);
+  phrases = r.phrases;
+  steps = [];
+  phrases.forEach((ph, p) => ph.forEach((_, i) => steps.push({ p, i })));
+  errEl.textContent = r.errors.join('\n');
+  pos = 0;
+  render();
+}
+
+// ---------- layout ----------
+function layout(W, H) {
+  let lo = Infinity, hi = -Infinity, maxN = 1;
+  phrases.forEach(ph => {
+    maxN = Math.max(maxN, ph.length);
+    ph.forEach(n => { lo = Math.min(lo, n.pitch); hi = Math.max(hi, n.pitch); });
+  });
+  const padX = 80, padY = 60;
+  const rowH = (H - 2 * padY) / Math.max(hi - lo, 1);
+  const unit = Math.min(90, (W - 2 * padX) / Math.max(maxN - 1, 1));
+  const cx = padX + (W - 2 * padX) / 2;
+  return {
+    lo, hi, padX,
+    yOf: p => H - padY - (p - lo) * rowH,
+    xOf: (i, n) => cx + (i - (n - 1) / 2) * unit,
+  };
+}
+
+// ---------- render ----------
+function render() {
+  const W = svg.clientWidth, H = svg.clientHeight;
+  if (!W || !H) return;
+  if (!steps.length) {
+    svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="var(--muted)" font-size="16">Type an alankar on the left</text>`;
+    readout.textContent = ''; statusEl.textContent = '';
+    return;
+  }
+  const L = layout(W, H);
+  const k = Math.min(Math.floor(pos), steps.length - 1);
+  const frac = Math.min(pos - k, 1);
+  const cur = steps[k];
+  const ph = phrases[cur.p];
+
+  // Ghost phrases: earlier phrases that start on the same note as this one.
+  let gs = cur.p;
+  while (gs > 0 && phrases[gs - 1][0].pitch === ph[0].pitch) gs--;
+
+  let out = '';
+
+  // Guide lines, one per scale degree.
+  for (let p = L.lo; p <= L.hi; p++) {
+    const y = L.yOf(p);
+    const label = NAMES[((p % 7) + 7) % 7] + octMark(Math.floor(p / 7));
+    out += `<line x1="${L.padX}" x2="${W - 24}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-dasharray="2 6"/>`;
+    out += `<text x="${L.padX - 16}" y="${y + 5}" text-anchor="end" fill="var(--muted)" font-size="14">${label}</text>`;
+  }
+
+  // Ghosts.
+  for (let g = gs; g < cur.p; g++) {
+    const q = phrases[g];
+    const pts = q.map((n, i) => `${L.xOf(i, q.length)},${L.yOf(n.pitch)}`).join(' ');
+    out += `<polyline points="${pts}" fill="none" stroke="var(--ghost)" stroke-width="2" opacity=".55"/>`;
+    q.forEach((n, i) => {
+      out += `<circle cx="${L.xOf(i, q.length)}" cy="${L.yOf(n.pitch)}" r="3" fill="var(--ghost)"/>`;
+    });
+  }
+
+  // Current phrase. Labels sit outside the triangle: above for up, below for down.
+  const P = ph.map((n, i) => [L.xOf(i, ph.length), L.yOf(n.pitch)]);
+  const top = Math.max(...ph.map(n => n.pitch)), bot = Math.min(...ph.map(n => n.pitch));
+  const up = top - ph[0].pitch >= ph[0].pitch - bot;
+  const dy = up ? -16 : 28;
+  const line = pts => pts.map(p => p.join(',')).join(' ');
+
+  out += `<polyline points="${line(P)}" fill="none" stroke="var(--trail)" stroke-width="2" opacity=".18" stroke-dasharray="4 6"/>`;
+  if (cur.i > 0) out += `<polyline points="${line(P.slice(0, cur.i + 1))}" fill="none" stroke="var(--trail)" stroke-width="3"/>`;
+
+  ph.forEach((n, i) => {
+    const [x, y] = P[i];
+    if (i < cur.i) {
+      out += `<circle cx="${x}" cy="${y}" r="5" fill="var(--trail)"/>`;
+      out += `<text x="${x}" y="${y + dy}" text-anchor="middle" fill="var(--text)" font-size="16">${n.label}</text>`;
+    } else if (i > cur.i) {
+      out += `<circle cx="${x}" cy="${y}" r="3" fill="var(--trail)" opacity=".3"/>`;
+    }
+  });
+
+  // Current note: pulse once per beat.
+  const [x, y] = P[cur.i];
+  out += `<circle cx="${x}" cy="${y}" r="${12 + 18 * (1 - frac)}" fill="var(--accent)" opacity="${0.3 * (1 - frac)}"/>`;
+  out += `<circle cx="${x}" cy="${y}" r="9" fill="var(--accent)"/>`;
+  out += `<text x="${x}" y="${y + (up ? -24 : 38)}" text-anchor="middle" fill="var(--accent)" font-size="30" font-weight="700">${ph[cur.i].label}</text>`;
+
+  svg.innerHTML = out;
+  readout.innerHTML = ph.map((n, i) => i === cur.i ? `<b>${n.label}</b>` : n.label).join(' ');
+  statusEl.textContent = `Phrase ${cur.p + 1} / ${phrases.length}  ·  Note ${cur.i + 1} / ${ph.length}`;
+}
+
+// ---------- playback ----------
+function tick(t) {
+  if (!playing) return;
+  if (lastT) pos += (t - lastT) * bpm / 60000;
+  lastT = t;
+  if (pos >= steps.length) pos -= steps.length;   // loop
+  render();
+  if (playing) requestAnimationFrame(tick);
+}
+
+function setPlaying(on) {
+  if (on && !steps.length) return;
+  playing = on;
+  lastT = 0;
+  playBtn.textContent = on ? 'Pause' : 'Play';
+  if (on) requestAnimationFrame(tick);
+}
+
+function setBpm(v) {
+  bpm = Math.min(240, Math.max(30, Number(v) || 80));
+  bpmRange.value = bpm; bpmNum.value = bpm;
+  localStorage.setItem('alankar-bpm', bpm);
+}
+
+// ---------- theme ----------
+function setTheme(t) {
+  document.documentElement.dataset.theme = t;
+  themeBtn.textContent = t === 'light' ? 'Dark mode' : 'Light mode';
+  localStorage.setItem('alankar-theme', t);
+}
+themeBtn.onclick = () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+setTheme(localStorage.getItem('alankar-theme')
+  ?? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+
+// ---------- wiring ----------
+playBtn.onclick = () => setPlaying(!playing);
+resetBtn.onclick = () => { setPlaying(false); pos = 0; render(); };
+bpmRange.oninput = e => setBpm(e.target.value);
+bpmNum.onchange = e => setBpm(e.target.value);
+scoreEl.oninput = () => { setPlaying(false); localStorage.setItem('alankar-score', scoreEl.value); loadScore(); };
+window.addEventListener('resize', render);
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !/TEXTAREA|INPUT|BUTTON/.test(e.target.tagName)) { e.preventDefault(); setPlaying(!playing); }
+});
+
+scoreEl.value = localStorage.getItem('alankar-score') ?? DEFAULT_SCORE;
+setBpm(localStorage.getItem('alankar-bpm') ?? 80);
+loadScore();
+</script>
+</body>
+</html>
