@@ -190,10 +190,6 @@ function render() {
   const cur = steps[k];
   const ph = phrases[cur.p];
 
-  // Ghost phrases: earlier phrases that start on the same note as this one.
-  let gs = cur.p;
-  while (gs > 0 && phrases[gs - 1][0].pitch === ph[0].pitch) gs--;
-
   let out = '';
 
   // Guide lines, one per scale degree.
@@ -204,8 +200,8 @@ function render() {
     out += `<text x="${L.padX - 16}" y="${y + 5}" text-anchor="end" fill="var(--muted)" font-size="14">${label}</text>`;
   }
 
-  // Ghosts.
-  for (let g = gs; g < cur.p; g++) {
+  // Ghosts: every earlier phrase in this cycle stays on screen.
+  for (let g = 0; g < cur.p; g++) {
     const q = phrases[g];
     const pts = q.map((n, i) => `${L.xOf(i, q.length)},${L.yOf(n.pitch)}`).join(' ');
     out += `<polyline points="${pts}" fill="none" stroke="var(--ghost)" stroke-width="2" opacity=".55"/>`;
