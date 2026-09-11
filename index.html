@@ -37,8 +37,9 @@
   }
   .hint { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 6px; }
   .err { color: #ff7b7b; font-size: 12px; white-space: pre-wrap; margin-top: 6px; }
-  .bpm { display: flex; gap: 10px; align-items: center; }
-  input[type=range] { flex: 1; accent-color: var(--accent); }
+  .bpm { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+  .bpm label { margin: 0; }
+  input[type=range] { width: 140px; accent-color: var(--accent); }
   input[type=number] {
     width: 64px; background: var(--bg); color: var(--text);
     border: 1px solid var(--line); border-radius: 6px; padding: 6px; font-size: 14px;
@@ -57,15 +58,15 @@
     #close { display: block; }
   }
   main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-  .top { display: flex; align-items: center; gap: 12px; padding: 12px 16px 0; }
+  .top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px 0; }
   #burger {
     flex: none; width: 36px; height: 36px; padding: 0; font-size: 18px;
     color: var(--muted); background: transparent; border-color: transparent;
   }
   #burger:hover { border-color: var(--line); }
   .readout {
-    font: 24px ui-monospace, Menlo, monospace; letter-spacing: .2em;
-    min-height: 34px; color: var(--muted);
+    flex: 1; min-width: 0; font: 24px ui-monospace, Menlo, monospace;
+    letter-spacing: .2em; min-height: 34px; color: var(--muted);
   }
   .readout b { color: var(--accent); }
   .status { padding: 2px 64px; font-size: 12px; color: var(--muted); }
@@ -87,13 +88,6 @@
     <div class="hint">Notes: S R G M P D N. Lowercase = komal. Add ' for the upper octave (S') and . for the lower octave (N.).</div>
     <div id="err" class="err"></div>
   </div>
-  <div>
-    <label for="bpmNum">Tempo (BPM), one note per beat</label>
-    <div class="bpm">
-      <input type="range" id="bpmRange" min="30" max="240" value="80">
-      <input type="number" id="bpmNum" min="30" max="240" value="80">
-    </div>
-  </div>
   <div class="buttons">
     <button id="play" class="primary">Play</button>
     <button id="reset">Reset</button>
@@ -104,6 +98,11 @@
   <div class="top">
     <button id="burger" title="Show / hide sidebar">&#9776;</button>
     <div class="readout" id="readout"></div>
+    <div class="bpm" title="Tempo, one note per beat">
+      <label for="bpmNum">BPM</label>
+      <input type="range" id="bpmRange" min="30" max="240" value="80">
+      <input type="number" id="bpmNum" min="30" max="240" value="80">
+    </div>
   </div>
   <div class="status" id="status"></div>
   <svg id="stage"></svg>
