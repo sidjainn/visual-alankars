@@ -32,6 +32,10 @@ window.Looks = (() => {
         out += `<polyline points="${pts(P)}" fill="none" stroke="var(--ghost)" stroke-width="2" opacity=".55"/>`;
         P.forEach(([x, y]) => { out += `<circle cx="${x}" cy="${y}" r="3" fill="var(--ghost)"/>`; });
       }
+      // The next phrase, faint, so the eye knows where the line goes after this one.
+      const N = L.points(f.next);
+      out += `<polyline points="${pts(N)}" fill="none" stroke="var(--foreground)" stroke-width="1.5" opacity=".1"/>`;
+      N.forEach(([x, y]) => { out += `<circle cx="${x}" cy="${y}" r="2.5" fill="var(--foreground)" opacity=".14"/>`; });
       const P = L.points(f.ph), up = L.up(f.ph), dy = up ? -16 : 28;
       out += `<polyline points="${pts(P)}" fill="none" stroke="var(--trail)" stroke-width="2" opacity=".18" stroke-dasharray="4 6"/>`;
       if (f.cur.i > 0) out += `<polyline points="${pts(P.slice(0, f.cur.i + 1))}" fill="none" stroke="var(--trail)" stroke-width="3"/>`;
@@ -80,6 +84,8 @@ window.Looks = (() => {
       for (let g = 0; g < f.cur.p; g++) {
         out += `<polyline points="${pts(L.points(f.phrases[g]))}" fill="none" stroke="${INK}" stroke-width="2" opacity=".28" stroke-linejoin="round" filter="url(#pen)"/>`;
       }
+      // The next phrase, a light pencil sketch.
+      out += `<polyline points="${pts(L.points(f.next))}" fill="none" stroke="${GRAPHITE}" stroke-width="1.2" opacity=".16" stroke-linejoin="round"/>`;
       const P = L.points(f.ph), up = L.up(f.ph), dy = up ? -14 : 30;
       out += `<polyline points="${pts(P)}" fill="none" stroke="${GRAPHITE}" stroke-width="1.2" opacity=".35" stroke-dasharray="3 7" filter="url(#pen)"/>`;
       if (f.cur.i > 0) out += `<polyline points="${pts(P.slice(0, f.cur.i + 1))}" fill="none" stroke="${INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" filter="url(#pen)"/>`;
@@ -122,6 +128,10 @@ window.Looks = (() => {
       });
       for (let g = 0; g < f.cur.p; g++) out += `<polyline points="${pts(L.points(f.phrases[g]))}" fill="none" stroke="${DIM}" stroke-width="1.5" stroke-linejoin="round"/>`;
       // The light draws the edge: a comet runs toward the next note at tempo.
+      // The next phrase, barely lit.
+      const N = L.points(f.next);
+      out += `<polyline points="${pts(N)}" fill="none" stroke="${WHITE}" stroke-width="1.5" opacity=".06"/>`;
+      N.forEach(([x, y]) => { out += `<circle cx="${x}" cy="${y}" r="2.5" fill="${WHITE}" opacity=".12"/>`; });
       const P = L.points(f.ph), m = A.marker(P, f.cur.i, f.frac);
       out += `<polyline points="${pts(P)}" fill="none" stroke="${FAINT}" stroke-width="1.5"/>`;
       out += `<polyline points="${pts(P.slice(0, f.cur.i + 1).concat([m]))}" fill="none" stroke="${WHITE}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" filter="url(#glow)"/>`;
@@ -153,6 +163,10 @@ window.Looks = (() => {
         out += `<text x="${L.padL - 14}" y="${y + 4}" text-anchor="end" fill="var(--muted-foreground)" font-family='${MONO}' font-size="12">${A.degLatin(p)}</text>`;
       }
       for (let g = 0; g < f.cur.p; g++) out += `<polyline points="${pts(L.points(f.phrases[g]))}" fill="none" stroke="var(--ghost)" stroke-width="1.5" stroke-linejoin="round"/>`;
+      // The next phrase, faint.
+      const N = L.points(f.next);
+      out += `<polyline points="${pts(N)}" fill="none" stroke="var(--foreground)" stroke-width="1.5" opacity=".1"/>`;
+      N.forEach(([x, y]) => { out += `<circle cx="${x}" cy="${y}" r="2.5" fill="var(--foreground)" opacity=".14"/>`; });
       const P = L.points(f.ph), up = L.up(f.ph), dy = up ? -12 : 22;
       out += `<polyline points="${pts(P)}" fill="none" stroke="var(--ghost)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
       if (f.cur.i > 0) out += `<polyline points="${pts(P.slice(0, f.cur.i + 1))}" fill="none" stroke="var(--foreground)" stroke-width="2" stroke-linejoin="round"/>`;
@@ -173,7 +187,7 @@ window.Looks = (() => {
   const reel = (() => {
     const svg = $('rl-stage'), frame = $('rl-frame');
     const CORAL = '#ff5a4e', SUN = '#ffcc4d';
-    let INK = '#1b1b3a';
+    let INK = '#1b1b3a', KEY = '#00ff00';
     const hex = c => c.match(/\w\w/g).map(h => parseInt(h, 16));
     const mix = (a, b, t) => '#' + hex(a).map((v, i) => Math.round(v + (hex(b)[i] - v) * t).toString(16).padStart(2, '0')).join('');
     const draw = f => {
@@ -194,6 +208,8 @@ window.Looks = (() => {
         const age = f.cur.p > 1 ? g / (f.cur.p - 1) : 1;
         out += `<polygon points="${pts(L.points(f.phrases[g]))}" fill="${mix(far, near, age)}" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>`;
       }
+      // The next phrase as a solid tint of the background, so it still keys cleanly.
+      out += `<polyline points="${pts(L.points(f.next))}" fill="none" stroke="${mix(KEY, INK, .28)}" stroke-width="2" stroke-linejoin="round"/>`;
       const m = A.marker(P, f.cur.i, f.frac), up = L.up(f.ph);
       out += `<polyline points="${pts(P)}" fill="none" stroke="${INK}" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>`;
       out += `<polyline points="${pts(P.slice(0, f.cur.i + 1).concat([m]))}" fill="none" stroke="${INK}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`;
@@ -210,6 +226,7 @@ window.Looks = (() => {
     // Background: green or magenta to key out, black for Screen blend, white to multiply.
     draw.setKey = k => {
       frame.style.setProperty('--key', k);
+      KEY = k;
       INK = k === '#000000' ? '#ffffff' : '#1b1b3a';
       frame.style.setProperty('--ink', INK);
     };
