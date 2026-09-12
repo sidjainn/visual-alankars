@@ -133,9 +133,8 @@
   /* Reel */
   #look-reel { align-items: center; justify-content: center; background: #141414; container-type: size; font-family: "Baloo 2", system-ui, sans-serif; }
   #look-reel .frame { position: relative; width: min(100cqw, calc(100cqh * 9 / 16)); aspect-ratio: 9 / 16; background: var(--key, #00ff00); overflow: hidden; container-type: size; }
-  #look-reel .hero { position: absolute; left: 0; right: 0; top: 33%; text-align: center; color: var(--ink); line-height: 1; pointer-events: none; }
-  #look-reel .deva { font-size: 13cqh; font-weight: 800; color: #ff5a4e; letter-spacing: -.02em; }
-  #look-reel .ticker { margin-top: 1cqh; font-size: 2.5cqh; font-weight: 500; letter-spacing: .12em; word-spacing: .3em; }
+  #look-reel .hero { position: absolute; left: 0; right: 0; top: 45%; text-align: center; color: var(--ink); line-height: 1; pointer-events: none; }
+  #look-reel .ticker { font-size: 3cqh; font-weight: 500; letter-spacing: .14em; word-spacing: .3em; }
   #look-reel .ticker b { color: #ff5a4e; font-weight: 800; }
   #look-reel svg { position: absolute; left: 0; right: 0; bottom: 0; height: 49%; }
   /* An invisible corner tap brings the controls back after H. */
@@ -223,7 +222,7 @@
     </div>
     <div class="look" id="look-reel">
       <div class="frame" id="rl-frame">
-        <div class="hero"><div class="deva" id="rl-deva"></div><div class="ticker" id="rl-ticker"></div></div>
+        <div class="hero"><div class="ticker" id="rl-ticker"></div></div>
         <svg id="rl-stage"></svg>
       </div>
     </div>

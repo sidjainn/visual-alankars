@@ -194,7 +194,6 @@ window.Looks = (() => {
       const W = svg.clientWidth, H = svg.clientHeight;
       if (!W || !H || !f) { svg.innerHTML = ''; return; }
       const cur = f.ph[f.cur.i];
-      $('rl-deva').textContent = A.deva(cur);
       $('rl-ticker').innerHTML = f.ph.map((n, i) => i === f.cur.i ? `<b>${A.latin(n)}</b>` : A.latin(n)).join(' ');
       const L = A.layout(f.phrases, W, H, { padL: 44, padR: 20, padT: 30, padB: 26, maxUnit: W / 9 });
       let out = '';
