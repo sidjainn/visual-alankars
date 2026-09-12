@@ -4,109 +4,145 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Visual Alankars</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
 <style>
+  /* shadcn "zinc" tokens. */
   :root {
-    --bg: #12141a; --panel: #1b1e27; --line: #2a2f3c;
-    --text: #e8e6df; --muted: #7f8699;
-    --accent: #f5b642; --ghost: #4b5f8a; --trail: #8fb3ff;
+    --background: #ffffff; --foreground: #09090b;
+    --muted: #f4f4f5; --muted-foreground: #71717a;
+    --border: #e4e4e7; --input: #e4e4e7; --ring: #18181b;
+    --primary: #18181b; --primary-foreground: #fafafa;
+    --accent: #f4f4f5; --destructive: #dc2626;
+    --sidebar: #fafafa; --radius: .5rem;
+    /* stage */
+    --trail: #3b6fd6; --note: #d98c00; --ghost: #a1a1aa;
   }
-  :root[data-theme="light"] {
-    --bg: #f7f5ef; --panel: #ffffff; --line: #e3e0d8;
-    --text: #1d1f26; --muted: #6b7080;
-    --accent: #d98c00; --ghost: #a3b3d2; --trail: #3b6fd6;
+  :root[data-theme="dark"] {
+    --background: #09090b; --foreground: #fafafa;
+    --muted: #27272a; --muted-foreground: #a1a1aa;
+    --border: #27272a; --input: #27272a; --ring: #d4d4d8;
+    --primary: #fafafa; --primary-foreground: #18181b;
+    --accent: #27272a; --destructive: #f87171;
+    --sidebar: #18181b;
+    --trail: #8fb3ff; --note: #f5b642; --ghost: #52525b;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; height: 100vh; height: 100dvh; background: var(--bg); color: var(--text);
-    font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
-    display: grid; grid-template-columns: 280px 1fr;
+    margin: 0; height: 100vh; height: 100dvh; background: var(--background); color: var(--foreground);
+    font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.5;
+    display: grid; grid-template-columns: 280px 1fr; -webkit-font-smoothing: antialiased;
   }
-  aside {
-    background: var(--panel); border-right: 1px solid var(--line);
-    padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow: auto;
-  }
-  .head { display: flex; align-items: center; justify-content: space-between; }
-  h1 { font-size: 16px; margin: 0; font-weight: 600; }
-  #theme { flex: 0; padding: 4px 10px; font-size: 12px; white-space: nowrap; }
-  #close { display: none; flex: none; width: 30px; height: 30px; padding: 0; margin-left: 8px; font-size: 16px; }
-  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
-  textarea {
-    width: 100%; height: 300px; background: var(--bg); color: var(--text);
-    border: 1px solid var(--line); border-radius: 6px; padding: 10px;
-    font: 14px/1.6 ui-monospace, Menlo, monospace; resize: vertical;
-  }
-  .hint { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 6px; }
-  .err { color: #ff7b7b; font-size: 12px; white-space: pre-wrap; margin-top: 6px; }
-  .bpm { display: flex; gap: 8px; align-items: center; margin-left: auto; }
-  .bpm label { margin: 0; }
-  input[type=range] { width: 140px; accent-color: var(--accent); }
-  input[type=number] {
-    width: 64px; background: var(--bg); color: var(--text);
-    border: 1px solid var(--line); border-radius: 6px; padding: 6px; font-size: 14px;
-  }
-  .buttons { display: flex; gap: 8px; }
-  button {
-    flex: 1; padding: 9px 0; border: 1px solid var(--line); background: var(--bg);
-    color: var(--text); border-radius: 6px; font-size: 14px; cursor: pointer;
-  }
-  button.primary { background: var(--accent); color: #1a1200; border-color: var(--accent); font-weight: 600; }
   body.collapsed { grid-template-columns: 1fr; }
-  body.collapsed aside { display: none; }
+  body.collapsed .sidebar { display: none; }
+  body.hide-chrome { grid-template-columns: 1fr; }
+  body.hide-chrome .sidebar, body.hide-chrome .topbar { display: none; }
   @media (max-width: 700px) {
     body { grid-template-columns: 1fr; }
-    aside { position: fixed; top: 0; left: 0; bottom: 0; width: min(300px, 88vw); z-index: 10; box-shadow: 0 0 40px rgba(0,0,0,.4); }
-    #close { display: block; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: min(300px, 88vw); z-index: 10; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+    #close { display: inline-flex; }
   }
+
+  /* sidebar */
+  .sidebar { background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 20px; padding: 16px; overflow: auto; }
+  .sidebar-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .sidebar-header h1 { font-size: 14px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  .icons { display: flex; gap: 2px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .label { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+  .hint { font-size: 12px; color: var(--muted-foreground); line-height: 1.45; }
+  .error { font-size: 12px; color: var(--destructive); white-space: pre-wrap; }
+  .error:empty { display: none; }
+
+  /* controls */
+  textarea, input[type=number], select {
+    font: inherit; color: inherit; background: var(--background);
+    border: 1px solid var(--input); border-radius: calc(var(--radius) - 2px);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05); outline: none;
+  }
+  textarea:focus-visible, input:focus-visible, select:focus-visible, .btn:focus-visible { outline: none; box-shadow: 0 0 0 1px var(--ring); }
+  textarea { width: 100%; height: 280px; padding: 8px 12px; font: 13px/1.6 "Geist Mono", ui-monospace, Menlo, monospace; resize: vertical; }
+  input[type=number] { height: 36px; width: 64px; padding: 0 10px; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 16px;
+    border-radius: calc(var(--radius) - 2px); border: 1px solid transparent; font: inherit; font-weight: 500;
+    cursor: pointer; white-space: nowrap; color: var(--foreground); background: transparent; transition: background .15s, opacity .15s;
+  }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+  .btn-primary:hover { opacity: .9; }
+  .btn-outline { background: var(--background); border-color: var(--input); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  .btn-outline:hover, .btn-ghost:hover { background: var(--accent); }
+  .btn-icon { width: 36px; padding: 0; }
+  .btn-icon svg { width: 16px; height: 16px; }
+  .row { display: flex; gap: 8px; }
+  .row > .btn { flex: 1; }
+  #close { display: none; }
+  :root[data-theme="dark"] .icon-moon, :root:not([data-theme="dark"]) .icon-sun { display: none; }
+
+  /* range, after the shadcn slider */
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 140px; height: 16px; margin: 0; background: transparent; cursor: pointer; }
+  input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 20%, transparent); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -5px; border-radius: 999px; background: var(--background); border: 1px solid color-mix(in srgb, var(--primary) 50%, transparent); box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+  input[type=range]::-moz-range-track { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 20%, transparent); }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 999px; background: var(--background); border: 1px solid color-mix(in srgb, var(--primary) 50%, transparent); }
+
+  /* main */
   main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-  .top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px 0; }
-  #burger {
-    flex: none; width: 36px; height: 36px; padding: 0; font-size: 18px;
-    color: var(--muted); background: transparent; border-color: transparent;
-  }
-  #burger:hover { border-color: var(--line); }
-  .readout {
-    flex: 1; min-width: 0; font: 24px ui-monospace, Menlo, monospace;
-    letter-spacing: .2em; min-height: 34px; color: var(--muted);
-  }
-  .readout b { color: var(--accent); }
-  .status { padding: 2px 64px; font-size: 12px; color: var(--muted); }
-  svg { flex: 1; min-height: 0; width: 100%; }
+  .topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .readout { flex: 1; min-width: 0; font: 500 18px "Geist Mono", ui-monospace, Menlo, monospace; letter-spacing: .18em; color: var(--muted-foreground); }
+  .readout b { color: var(--note); font-weight: 600; }
+  .status { font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .bpm { display: flex; align-items: center; gap: 8px; }
+  #stage { flex: 1; min-height: 0; width: 100%; display: block; cursor: pointer; }
+  /* An invisible corner tap brings the controls back after H. */
+  #unhide { display: none; position: fixed; top: 0; left: 0; width: 56px; height: 56px; z-index: 20; background: transparent; border: 0; }
+  body.hide-chrome #unhide { display: block; }
 </style>
 </head>
 <body>
-<aside>
-  <div class="head">
+<aside class="sidebar">
+  <div class="sidebar-header">
     <h1>Visual Alankars</h1>
-    <span style="display:flex; align-items:center">
-      <button id="theme"></button>
-      <button id="close" title="Hide sidebar">&#10005;</button>
-    </span>
+    <div class="icons">
+      <button class="btn btn-ghost btn-icon" id="theme" title="Toggle light or dark">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-icon" id="close" title="Hide sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
   </div>
-  <div>
-    <label for="score">Alankar, one phrase per line</label>
+  <div class="field">
+    <label class="label" for="score">Score</label>
     <textarea id="score" spellcheck="false"></textarea>
-    <div class="hint">Notes: S R G M P D N. Lowercase = komal. Add ' for the upper octave (S') and . for the lower octave (N.).</div>
-    <div id="err" class="err"></div>
+    <div class="hint">One phrase per line. S R G M P D N. Lowercase is komal. S' is the upper octave, N. the lower.</div>
+    <div class="error" id="err"></div>
   </div>
-  <div class="buttons">
-    <button id="play" class="primary">Play</button>
-    <button id="reset">Reset</button>
+  <div class="row">
+    <button class="btn btn-primary" id="play">Play</button>
+    <button class="btn btn-outline" id="reset">Reset</button>
   </div>
-  <div class="hint">Space = play / pause</div>
+  <button class="btn btn-outline" id="hide">Hide controls</button>
+  <div class="hint">Space plays or pauses, or tap the stage. H hides the controls. When hidden, tap the top left corner to bring them back.</div>
 </aside>
 <main>
-  <div class="top">
-    <button id="burger" title="Show / hide sidebar">&#9776;</button>
+  <div class="topbar">
+    <button class="btn btn-ghost btn-icon" id="burger" title="Show or hide sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
     <div class="readout" id="readout"></div>
+    <div class="status" id="status"></div>
     <div class="bpm" title="Tempo, one note per beat">
-      <label for="bpmNum">BPM</label>
+      <label class="label" for="bpmNum">BPM</label>
       <input type="range" id="bpmRange" min="30" max="240" value="80">
       <input type="number" id="bpmNum" min="30" max="240" value="80">
     </div>
   </div>
-  <div class="status" id="status"></div>
   <svg id="stage"></svg>
 </main>
+<button id="unhide" aria-label="Show controls"></button>
 <script>
 const $ = id => document.getElementById(id);
 const svg = $('stage'), scoreEl = $('score'), readout = $('readout');
@@ -199,7 +235,7 @@ function render() {
   const W = svg.clientWidth, H = svg.clientHeight;
   if (!W || !H) return;
   if (!steps.length) {
-    svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="var(--muted)" font-size="16">Type an alankar on the left</text>`;
+    svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="var(--muted-foreground)" font-size="14">Type an alankar in the sidebar</text>`;
     readout.textContent = ''; statusEl.textContent = '';
     return;
   }
@@ -215,8 +251,8 @@ function render() {
   for (let p = L.lo; p <= L.hi; p++) {
     const y = L.yOf(p);
     const label = NAMES[((p % 7) + 7) % 7] + octMark(Math.floor(p / 7));
-    out += `<line x1="${L.padX}" x2="${W - 24}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-dasharray="2 6"/>`;
-    out += `<text x="${L.padX - 16}" y="${y + 5}" text-anchor="end" fill="var(--muted)" font-size="14">${label}</text>`;
+    out += `<line x1="${L.padX}" x2="${W - 24}" y1="${y}" y2="${y}" stroke="var(--border)" stroke-dasharray="2 6"/>`;
+    out += `<text x="${L.padX - 16}" y="${y + 5}" text-anchor="end" fill="var(--muted-foreground)" font-family="Geist Mono, ui-monospace, monospace" font-size="13">${label}</text>`;
   }
 
   // Ghosts: every earlier phrase in this cycle stays on screen.
@@ -243,7 +279,7 @@ function render() {
     const [x, y] = P[i];
     if (i < cur.i) {
       out += `<circle cx="${x}" cy="${y}" r="5" fill="var(--trail)"/>`;
-      out += `<text x="${x}" y="${y + dy}" text-anchor="middle" fill="var(--text)" font-size="16">${n.label}</text>`;
+      out += `<text x="${x}" y="${y + dy}" text-anchor="middle" fill="var(--foreground)" font-size="16">${n.label}</text>`;
     } else if (i > cur.i) {
       out += `<circle cx="${x}" cy="${y}" r="3" fill="var(--trail)" opacity=".3"/>`;
     }
@@ -251,9 +287,9 @@ function render() {
 
   // Current note: pulse once per beat.
   const [x, y] = P[cur.i];
-  out += `<circle cx="${x}" cy="${y}" r="${12 + 18 * (1 - frac)}" fill="var(--accent)" opacity="${0.3 * (1 - frac)}"/>`;
-  out += `<circle cx="${x}" cy="${y}" r="9" fill="var(--accent)"/>`;
-  out += `<text x="${x}" y="${y + (up ? -24 : 38)}" text-anchor="middle" fill="var(--accent)" font-size="30" font-weight="700">${ph[cur.i].label}</text>`;
+  out += `<circle cx="${x}" cy="${y}" r="${12 + 18 * (1 - frac)}" fill="var(--note)" opacity="${0.3 * (1 - frac)}"/>`;
+  out += `<circle cx="${x}" cy="${y}" r="9" fill="var(--note)"/>`;
+  out += `<text x="${x}" y="${y + (up ? -24 : 38)}" text-anchor="middle" fill="var(--note)" font-size="30" font-weight="600">${ph[cur.i].label}</text>`;
 
   svg.innerHTML = out;
   readout.innerHTML = ph.map((n, i) => i === cur.i ? `<b>${n.label}</b>` : n.label).join(' ');
@@ -287,12 +323,11 @@ function setBpm(v) {
 // ---------- theme ----------
 function setTheme(t) {
   document.documentElement.dataset.theme = t;
-  themeBtn.textContent = t === 'light' ? 'Dark mode' : 'Light mode';
   localStorage.setItem('alankar-theme', t);
 }
-themeBtn.onclick = () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+themeBtn.onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 setTheme(localStorage.getItem('alankar-theme')
-  ?? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+  ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
 // ---------- wiring ----------
 playBtn.onclick = () => setPlaying(!playing);
@@ -301,11 +336,15 @@ bpmRange.oninput = e => setBpm(e.target.value);
 bpmNum.onchange = e => setBpm(e.target.value);
 scoreEl.oninput = () => { setPlaying(false); localStorage.setItem('alankar-score', scoreEl.value); loadScore(); };
 burger.onclick = $('close').onclick = () => { document.body.classList.toggle('collapsed'); render(); };
+const toggleChrome = () => { document.body.classList.toggle('hide-chrome'); render(); };
+$('hide').onclick = $('unhide').onclick = toggleChrome;
 if (innerWidth < 700) document.body.classList.add('collapsed');
 svg.onclick = () => setPlaying(!playing);   // tap the stage to play / pause (no keyboard on phones)
 window.addEventListener('resize', render);
 window.addEventListener('keydown', e => {
-  if (e.code === 'Space' && !/TEXTAREA|INPUT|BUTTON/.test(e.target.tagName)) { e.preventDefault(); setPlaying(!playing); }
+  if (/TEXTAREA|INPUT|SELECT/.test(e.target.tagName)) return;
+  if (e.code === 'Space') { e.preventDefault(); setPlaying(!playing); }
+  if (e.key === 'h' || e.key === 'H') toggleChrome();
 });
 
 scoreEl.value = localStorage.getItem('alankar-score') ?? DEFAULT_SCORE;
