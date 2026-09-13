@@ -67,7 +67,7 @@
   select { height: 36px; width: 100%; padding: 0 32px 0 12px; appearance: none; cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; }
-  .swatches { display: none; gap: 8px; }
+  .swatches { display: none; flex-wrap: wrap; gap: 8px; }
   body[data-look="reel"] .swatches { display: flex; }
   .swatch { width: 28px; height: 28px; border-radius: 999px; border: 1px solid var(--input); cursor: pointer; padding: 0; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
   .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring); }
@@ -139,7 +139,7 @@
   #look-reel .frame { position: relative; width: min(100cqw, calc(100cqh * 9 / 16)); aspect-ratio: 9 / 16; background: var(--key, #00ff00); overflow: hidden; container-type: size; }
   #look-reel .hero { position: absolute; left: 0; right: 0; top: 45%; text-align: center; color: var(--ink); line-height: 1; pointer-events: none; }
   #look-reel .ticker { font-size: 3cqh; font-weight: 500; letter-spacing: .14em; word-spacing: .3em; }
-  #look-reel .ticker b { color: #ff5a4e; font-weight: 800; }
+  #look-reel .ticker b { color: var(--hot, #ff5a4e); font-weight: 800; }
   #look-reel svg { position: absolute; left: 0; right: 0; bottom: 0; height: 49%; }
   /* An invisible corner tap brings the controls back after H. */
   #unhide { display: none; position: fixed; top: 0; left: 0; width: 56px; height: 56px; z-index: 20; background: transparent; border: 0; }
@@ -175,12 +175,7 @@
       <option value="zinc">Zinc</option>
       <option value="reel">Reel</option>
     </select>
-    <div class="swatches" id="keys" title="Background: green or magenta to key out, black for Screen blend, white to multiply">
-      <button class="swatch" style="background:#00ff00" data-key="#00ff00" aria-label="Green"></button>
-      <button class="swatch" style="background:#ff00ff" data-key="#ff00ff" aria-label="Magenta"></button>
-      <button class="swatch" style="background:#000" data-key="#000000" aria-label="Black"></button>
-      <button class="swatch" style="background:#fff" data-key="#ffffff" aria-label="White"></button>
-    </div>
+    <div class="swatches" id="keys"></div>
   </div>
   <div class="row">
     <button class="btn btn-primary" id="play">Play</button>
@@ -285,8 +280,13 @@ function setLook(name) {
 }
 lookEl.onchange = e => setLook(e.target.value);
 
+// Reel backgrounds. Green and magenta key out, black is for Screen blend,
+// white to multiply; the rest are real backgrounds for a reel.
+$('keys').innerHTML = Object.entries(Looks.reel.palettes).map(([k, p]) =>
+  `<button class="swatch" style="background:${p.bg}" data-key="${k}" title="${p.name}" aria-label="${p.name}"></button>`).join('');
 function setKey(k) {
-  Looks.reel.setKey(k);
+  if (!Looks.reel.palettes[k]) k = 'green';
+  Looks.reel.setPalette(k);
   document.querySelectorAll('.swatch').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.key === k)));
   localStorage.setItem('alankar-key', k);
   render();
@@ -321,11 +321,15 @@ window.addEventListener('keydown', e => {
 });
 
 setLook(localStorage.getItem('alankar-look') ?? 'original');
-setKey(localStorage.getItem('alankar-key') ?? '#00ff00');
+setKey(localStorage.getItem('alankar-key') ?? 'green');
 setBpm(localStorage.getItem('alankar-bpm') ?? 80);
 scoreEl.value = localStorage.getItem('alankar-score') ?? DEFAULT_SCORE;
 loadScore();
-if (new URLSearchParams(location.search).has('autoplay')) player.play(true);
+// URL options: ?autoplay=1 starts playing, ?hide=1 opens with the controls hidden, ?pos=N starts at beat N.
+const q = new URLSearchParams(location.search);
+if (q.has('hide')) document.body.classList.add('hide-chrome');
+if (q.has('pos')) { player.state.pos = Number(q.get('pos')) || 0; render(); }
+if (q.has('autoplay')) player.play(true);
 </script>
 </body>
 </html>

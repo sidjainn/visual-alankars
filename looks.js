@@ -206,10 +206,28 @@ window.Looks = (() => {
   // ---------- Reel: a 9:16 frame with the top half empty for the singer, keyed background ----------
   const reel = (() => {
     const svg = $('rl-stage'), frame = $('rl-frame');
-    const CORAL = '#ff5a4e', SUN = '#ffcc4d';
-    let INK = '#1b1b3a', KEY = '#00ff00';
     const hex = c => c.match(/\w\w/g).map(h => parseInt(h, 16));
     const mix = (a, b, t) => '#' + hex(a).map((v, i) => Math.round(v + (hex(b)[i] - v) * t).toString(16).padStart(2, '0')).join('');
+    // Backgrounds. The first four are for compositing: green and magenta to
+    // key out, black for Screen blend, white to multiply. The rest are real
+    // backgrounds for a reel with the video in the top half. Each one names
+    // its ink (lines, labels), accent (the note being sung) and hot (comet and
+    // current label). Hills, the earlier phrases, run from far (oldest) to
+    // near (just sung); soft palettes draw their hill outlines lighter.
+    const PALETTES = {
+      green:      { name: 'Green key',   bg: '#00ff00', ink: '#1b1b3a', accent: '#ffcc4d', hot: '#ff5a4e', far: '#d6d3ea', near: '#7c6cff', fill: '#ffb8b2' },
+      magenta:    { name: 'Magenta key', bg: '#ff00ff', ink: '#1b1b3a', accent: '#ffcc4d', hot: '#ff5a4e', far: '#d6d3ea', near: '#7c6cff', fill: '#ffd9a8' },
+      black:      { name: 'Black',       bg: '#000000', ink: '#ffffff', accent: '#ffcc4d', hot: '#ff5a4e', far: '#3a3a48', near: '#7c6cff', fill: '#6b3f3b' },
+      white:      { name: 'White',       bg: '#ffffff', ink: '#1b1b3a', accent: '#ffcc4d', hot: '#ff5a4e', far: '#e6e4f2', near: '#7c6cff', fill: '#ffb8b2' },
+      terracotta: { name: 'Terracotta',  bg: '#c4603d', ink: '#26140e', accent: '#f6d79c', hot: '#fff3df', far: '#cf7d5d', near: '#f1b993', soft: true },
+      saffron:    { name: 'Saffron',     bg: '#e29a2e', ink: '#3a2208', accent: '#fff2cf', hot: '#9e2619', far: '#e8ad52', near: '#f7d693', soft: true },
+      sand:       { name: 'Sand',        bg: '#ebdfc7', ink: '#2a241f', accent: '#e0603f', hot: '#9a2a1c', far: '#dccbb0', near: '#bda58a', soft: true },
+      olive:      { name: 'Olive',       bg: '#5b6939', ink: '#f3efe0', accent: '#f1c95e', hot: '#fff1bb', far: '#6f7d49', near: '#9aa86a', soft: true },
+      plum:       { name: 'Plum',        bg: '#4a2237', ink: '#f7e7ec', accent: '#f3b19b', hot: '#ffd66c', far: '#5e3049', near: '#8c5477', soft: true },
+      espresso:   { name: 'Espresso',    bg: '#2a1a13', ink: '#f2e5d2', accent: '#e6914f', hot: '#ffd8a4', far: '#3e2a20', near: '#6b4a38', soft: true },
+      navy:       { name: 'Ink',         bg: '#1e2340', ink: '#f2ebdc', accent: '#efb13f', hot: '#ffefc2', far: '#2c3356', near: '#4a5583', soft: true },
+    };
+    let P0 = PALETTES.green, INK = P0.ink, KEY = P0.bg;
     const draw = f => {
       const W = svg.clientWidth, H = svg.clientHeight;
       if (!W || !H || !f) { svg.innerHTML = ''; return; }
@@ -226,11 +244,10 @@ window.Looks = (() => {
       // Earlier phrases become solid layers behind the current one, like hills.
       // Solid colours only, so a chroma key has clean edges.
       const P = L.points(f.ph);
-      const far = mix(INK, '#ffffff', INK === '#ffffff' ? .55 : .82), near = '#7c6cff';
-      out += `<polygon points="${pts(P)}" fill="${mix(CORAL, '#ffffff', .55)}"/>`;
+      out += `<polygon points="${pts(P)}" fill="${P0.fill ?? mix(KEY, P0.accent, .5)}"/>`;
       for (let g = f.cur.p - 1; g >= 0; g--) {
         const age = f.cur.p > 1 ? g / (f.cur.p - 1) : 1;
-        out += `<polygon points="${pts(L.points(f.phrases[g]))}" fill="${mix(far, near, age)}" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>`;
+        out += `<polygon points="${pts(L.points(f.phrases[g]))}" fill="${mix(P0.far, P0.near, age)}" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round" ${P0.soft ? 'stroke-opacity=".5"' : ''}/>`;
       }
       // The next phrase as a solid tint of the background, so it still keys cleanly.
       const N = L.points(f.next), TINT = mix(KEY, INK, .28);
@@ -245,17 +262,18 @@ window.Looks = (() => {
         out += A.dot(n, x, y, 5, INK, KEY) + `<text x="${x}" y="${ly}" text-anchor="middle" fill="${INK}" font-family="Baloo 2" font-weight="800" font-size="14">${A.latin(n)}</text>` + A.marks(n, x, ly, 14, INK, 1.5);
       });
       const [x, y] = P[f.cur.i], ly = y + (up ? -22 : 34);
-      out += `<circle cx="${x}" cy="${y}" r="${12 + 10 * (1 - f.frac)}" fill="${SUN}" stroke="${INK}" stroke-width="3"/>`;
-      out += `<circle cx="${m[0]}" cy="${m[1]}" r="6" fill="${CORAL}" stroke="${INK}" stroke-width="2"/>`;
-      out += `<text x="${x}" y="${ly}" text-anchor="middle" fill="${CORAL}" stroke="${INK}" stroke-width=".6" font-family="Baloo 2" font-weight="800" font-size="26">${A.latin(cur)}</text>` + A.marks(cur, x, ly, 26, CORAL, 2.5);
+      out += `<circle cx="${x}" cy="${y}" r="${12 + 10 * (1 - f.frac)}" fill="${P0.accent}" stroke="${INK}" stroke-width="3"/>`;
+      out += `<circle cx="${m[0]}" cy="${m[1]}" r="6" fill="${P0.hot}" stroke="${INK}" stroke-width="2"/>`;
+      out += `<text x="${x}" y="${ly}" text-anchor="middle" fill="${P0.hot}" stroke="${INK}" stroke-width=".6" font-family="Baloo 2" font-weight="800" font-size="26">${A.latin(cur)}</text>` + A.marks(cur, x, ly, 26, P0.hot, 2.5);
       svg.innerHTML = out;
     };
-    // Background: green or magenta to key out, black for Screen blend, white to multiply.
-    draw.setKey = k => {
-      frame.style.setProperty('--key', k);
-      KEY = k;
-      INK = k === '#000000' ? '#ffffff' : '#1b1b3a';
+    draw.palettes = PALETTES;
+    draw.setPalette = name => {
+      P0 = PALETTES[name] ?? PALETTES.green;
+      KEY = P0.bg; INK = P0.ink;
+      frame.style.setProperty('--key', KEY);
       frame.style.setProperty('--ink', INK);
+      frame.style.setProperty('--hot', P0.hot);
     };
     return draw;
   })();
