@@ -311,7 +311,10 @@ scoreEl.oninput = () => { localStorage.setItem('alankar-score', scoreEl.value); 
 $('burger').onclick = $('close').onclick = () => { document.body.classList.toggle('collapsed'); render(); };
 const toggleChrome = () => { document.body.classList.toggle('hide-chrome'); render(); };
 $('hide').onclick = $('unhide').onclick = toggleChrome;
-if (innerWidth < 700) document.body.classList.add('collapsed');
+// Narrow screens start with the sidebar hidden; crossing the breakpoint (a rotate, or a host that sizes the frame late) follows suit.
+const narrow = matchMedia('(max-width: 700px)');
+document.body.classList.toggle('collapsed', narrow.matches);
+narrow.addEventListener('change', e => document.body.classList.toggle('collapsed', e.matches));
 $('stage').onclick = () => player.play();   // tap the stage to play / pause (no keyboard on phones)
 window.addEventListener('resize', render);
 window.addEventListener('keydown', e => {
