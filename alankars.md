@@ -122,3 +122,14 @@ S R S
 S R G R S
 S R G M G R S
 ```
+
+## 8. Komal and tivra, across saptaks
+
+Bhairavi going up, then a taar phrase with tivra Ma, then down into mandra. Lowercase is komal, `M#` is tivra Ma.
+
+```
+S r g M P d n S'
+S' n d P M g r S
+S' r' g' M#' P' M#' g' r' S'
+P. d. n. S r S n. d. P.
+```

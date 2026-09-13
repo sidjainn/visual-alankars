@@ -104,6 +104,10 @@
   body[data-look="original"] #look-original, body[data-look="notebook"] #look-notebook, body[data-look="glow"] #look-glow { display: block; }
   body[data-look="zinc"] #look-zinc, body[data-look="reel"] #look-reel { display: flex; }
   .look svg { display: block; width: 100%; height: 100%; }
+  /* Bhatkhande marks in HTML text: a line under komal, a stroke above tivra Ma. */
+  .komal { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .14em; }
+  .tivra { position: relative; }
+  .tivra::before { content: ""; position: absolute; left: calc(50% - .5px); top: -.06em; width: 1px; height: .26em; background: currentColor; }
 
   /* Notebook */
   #look-notebook { background: #efe6d0; }
@@ -159,7 +163,7 @@
   <div class="field">
     <label class="label" for="score">Score</label>
     <textarea id="score" spellcheck="false"></textarea>
-    <div class="hint">One phrase per line. S R G M P D N. Lowercase is komal. S' is the upper octave, N. the lower.</div>
+    <div class="hint">One phrase per line. S R G M P D N. Lowercase r g d n are komal, M# is tivra Ma. S' is the upper octave, N. the lower.</div>
     <div class="error" id="err"></div>
   </div>
   <div class="field">
