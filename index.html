@@ -101,13 +101,14 @@
      carries its own shadow so it stays legible on whatever the current look paints there. */
   .topbar {
     position: absolute; top: 0; left: 0; right: 0; z-index: 4;
-    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 8px; padding: 10px 12px;
     color: #fff;
   }
+  .topbar-row { display: flex; align-items: center; gap: 12px; }
   .topbar .btn { color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,.7)) drop-shadow(0 0 5px rgba(0,0,0,.5)); }
   .topbar .btn-ghost:hover { background: rgba(255,255,255,.16); }
   .status { flex: 1; font-size: 12px; color: #fff; font-variant-numeric: tabular-nums; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,.7), 0 0 5px rgba(0,0,0,.5); }
-  .bpm { display: flex; align-items: center; gap: 8px; }
+  .bpm { display: flex; align-items: center; justify-content: center; gap: 8px; }
   .bpm .label { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.7), 0 0 5px rgba(0,0,0,.5); }
   .topbar input[type=number] { background: rgba(0,0,0,.35); border-color: rgba(255,255,255,.4); color: #fff; }
   .topbar input[type=range] { filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
@@ -203,10 +204,12 @@
 </aside>
 <main>
   <div class="topbar" id="topbar">
-    <button class="btn btn-ghost btn-icon" id="burger" title="Show or hide sidebar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-    <div class="status" id="status"></div>
+    <div class="topbar-row">
+      <button class="btn btn-ghost btn-icon" id="burger" title="Show or hide sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="status" id="status"></div>
+    </div>
     <div class="bpm" title="Tempo, one note per beat">
       <label class="label" for="bpmNum">BPM</label>
       <input type="range" id="bpmRange" min="30" max="240" value="80">
