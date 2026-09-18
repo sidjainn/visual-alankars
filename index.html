@@ -17,6 +17,7 @@
     --sidebar: #fafafa; --radius: .5rem;
     /* stage */
     --trail: #3b6fd6; --note: #d98c00; --ghost: #a1a1aa;
+    --topbar-h: 0px;
   }
   :root[data-theme="dark"] {
     --background: #09090b; --foreground: #fafafa;
@@ -95,10 +96,25 @@
   input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 999px; background: var(--background); border: 1px solid color-mix(in srgb, var(--primary) 50%, transparent); }
 
   /* main */
-  main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-  .topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
-  .status { flex: 1; font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  main { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }
+  /* The topbar floats over the stage, so its BPM control reads as part of the look's own frame
+     rather than a strip above it. Always dark-on-translucent so it stays legible on every palette. */
+  .topbar {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 4;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 12px;
+    background: rgba(0,0,0,.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px rgba(0,0,0,.2); color: #fff;
+  }
+  .topbar .btn { color: #fff; }
+  .topbar .btn-ghost:hover { background: rgba(255,255,255,.16); }
+  .status { flex: 1; font-size: 12px; color: rgba(255,255,255,.7); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .bpm { display: flex; align-items: center; gap: 8px; }
+  .bpm .label { color: rgba(255,255,255,.7); }
+  .topbar input[type=number] { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.3); color: #fff; }
+  .topbar input[type=range]::-webkit-slider-runnable-track { background: rgba(255,255,255,.28); }
+  .topbar input[type=range]::-webkit-slider-thumb { background: #fff; border-color: rgba(255,255,255,.6); }
+  .topbar input[type=range]::-moz-range-track { background: rgba(255,255,255,.28); }
+  .topbar input[type=range]::-moz-range-thumb { background: #fff; border-color: rgba(255,255,255,.6); }
   #stage { flex: 1; min-height: 0; position: relative; cursor: pointer; }
   .look { position: absolute; inset: 0; display: none; }
   body[data-look="original"] #look-original, body[data-look="notebook"] #look-notebook, body[data-look="glow"] #look-glow { display: block; }
@@ -115,7 +131,7 @@
   /* Glow */
   #look-glow { background: #000; }
   /* Zinc */
-  #look-zinc { padding: 16px; }
+  #look-zinc { padding: 16px; padding-top: calc(16px + var(--topbar-h)); }
   #look-zinc .card { flex: 1; display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--border); border-radius: calc(var(--radius) + 4px); overflow: hidden; background: var(--background); }
   #look-zinc .header { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 20px 12px; }
   #look-zinc .title { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
@@ -184,7 +200,7 @@
   <div class="hint">Space plays or pauses, or tap the stage. H hides the controls. When hidden, tap the top left corner to bring them back.</div>
 </aside>
 <main>
-  <div class="topbar">
+  <div class="topbar" id="topbar">
     <button class="btn btn-ghost btn-icon" id="burger" title="Show or hide sidebar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
@@ -227,8 +243,8 @@
   </div>
 </main>
 <button id="unhide" aria-label="Show controls"></button>
-<script src="core.js"></script>
-<script src="looks.js"></script>
+<script src="core.js?v=3"></script>
+<script src="looks.js?v=3"></script>
 <script>
 const $ = id => document.getElementById(id);
 const scoreEl = $('score'), statusEl = $('status'), errEl = $('err');
@@ -307,13 +323,17 @@ $('reset').onclick = () => player.reset();
 bpmRange.oninput = e => setBpm(e.target.value);
 bpmNum.onchange = e => setBpm(e.target.value);
 scoreEl.oninput = () => { localStorage.setItem('alankar-score', scoreEl.value); loadScore(); };
-$('burger').onclick = $('close').onclick = () => { document.body.classList.toggle('collapsed'); render(); };
-const toggleChrome = () => { document.body.classList.toggle('hide-chrome'); render(); };
+// The topbar floats over the stage now; looks read its live height (--topbar-h) so guide lines and
+// labels clear it instead of drawing underneath.
+const topbarEl = $('topbar');
+function syncTopbarHeight() { document.documentElement.style.setProperty('--topbar-h', topbarEl.offsetHeight + 'px'); render(); }
+$('burger').onclick = $('close').onclick = () => { document.body.classList.toggle('collapsed'); syncTopbarHeight(); };
+const toggleChrome = () => { document.body.classList.toggle('hide-chrome'); syncTopbarHeight(); };
 $('unhide').onclick = toggleChrome;
 // Narrow screens start with the sidebar hidden; crossing the breakpoint (a rotate, or a host that sizes the frame late) follows suit.
 const narrow = matchMedia('(max-width: 700px)');
 document.body.classList.toggle('collapsed', narrow.matches);
-narrow.addEventListener('change', e => document.body.classList.toggle('collapsed', e.matches));
+narrow.addEventListener('change', e => { document.body.classList.toggle('collapsed', e.matches); syncTopbarHeight(); });
 // On a narrow screen the sidebar is a drawer over the stage; tapping outside it closes it, same as the cross button.
 const sidebarEl = document.querySelector('.sidebar');
 document.addEventListener('click', e => {
@@ -323,7 +343,7 @@ document.addEventListener('click', e => {
   render();
 });
 $('stage').onclick = () => player.play();   // tap the stage to play / pause (no keyboard on phones)
-window.addEventListener('resize', render);
+window.addEventListener('resize', syncTopbarHeight);
 window.addEventListener('keydown', e => {
   if (/TEXTAREA|INPUT|SELECT/.test(e.target.tagName)) return;
   if (e.code === 'Space') { e.preventDefault(); player.play(); }
@@ -335,6 +355,7 @@ setKey(localStorage.getItem('alankar-key') ?? 'green');
 setBpm(localStorage.getItem('alankar-bpm') ?? 80);
 scoreEl.value = localStorage.getItem('alankar-score') ?? DEFAULT_SCORE;
 loadScore();
+syncTopbarHeight();
 // URL options: ?autoplay=1 starts playing, ?hide=1 opens with the controls hidden, ?pos=N starts at beat N.
 const q = new URLSearchParams(location.search);
 if (q.has('hide')) document.body.classList.add('hide-chrome');

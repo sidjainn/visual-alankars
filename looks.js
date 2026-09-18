@@ -4,6 +4,9 @@ window.Looks = (() => {
   const $ = id => document.getElementById(id);
   const pts = P => P.map(p => p.join(',')).join(' ');
   const A = window.Alankar;
+  // The topbar floats over the stage (see index.html); looks that draw close to the
+  // very top read its live height so nothing renders underneath it.
+  const topbarH = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--topbar-h')) || 0;
 
   // ---------- Original: the app's own look, follows the light / dark theme ----------
   const original = (() => {
@@ -13,15 +16,15 @@ window.Looks = (() => {
       const W = svg.clientWidth, H = svg.clientHeight;
       if (!W || !H) return;
       if (!f) { svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="var(--muted-foreground)" font-size="14">Type an alankar in the sidebar</text>`; return; }
-      const narrow = W < 500;
-      const L = A.layout(f.phrases, W, H, { padL: narrow ? 48 : 80, padR: narrow ? 20 : 40, padT: narrow ? 64 : 76, padB: narrow ? 36 : 56, focus: f.focus });
+      const narrow = W < 500, topY = 34 + topbarH();
+      const L = A.layout(f.phrases, W, H, { padL: narrow ? 48 : 80, padR: narrow ? 20 : 40, padT: (narrow ? 64 : 76) + topbarH(), padB: narrow ? 36 : 56, focus: f.focus });
       const BG = 'var(--background)';
       let out = '';
       // The phrase, current note lit.
       const adv = narrow ? 22 : 28;
       f.ph.forEach((n, i) => {
         const on = i === f.cur.i, c = on ? 'var(--note)' : 'var(--muted-foreground)', x = L.padL + i * adv;
-        out += `<text x="${x}" y="34" text-anchor="middle" fill="${c}" font-family='${MONO}' font-weight="${on ? 600 : 500}" font-size="18">${A.latin(n)}</text>` + A.marks(n, x, 34, 18, c);
+        out += `<text x="${x}" y="${topY}" text-anchor="middle" fill="${c}" font-family='${MONO}' font-weight="${on ? 600 : 500}" font-size="18">${A.latin(n)}</text>` + A.marks(n, x, topY, 18, c);
       });
       // Guide lines. Every Sa is heavier: the gap between two Sa lines is one saptak.
       for (let p = L.vLo; p <= L.vHi; p++) {
@@ -66,10 +69,10 @@ window.Looks = (() => {
         <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="7" result="n"/>
         <feDisplacementMap in="SourceGraphic" in2="n" scale="2.5" xChannelSelector="R" yChannelSelector="G"/></filter></defs>`;
       if (!f) { svg.innerHTML = out; return; }
-      const narrow = W < 600;
-      const L = A.layout(f.phrases, W, H, { padL: narrow ? 84 : 120, padR: narrow ? 24 : 48, padT: narrow ? 150 : 170, padB: 56, maxUnit: narrow ? 60 : 84, focus: f.focus });
+      const narrow = W < 600, top = topbarH();
+      const L = A.layout(f.phrases, W, H, { padL: narrow ? 84 : 120, padR: narrow ? 24 : 48, padT: (narrow ? 150 : 170) + top, padB: 56, maxUnit: narrow ? 60 : 84, focus: f.focus });
       const PAPER = '#efe6d0', margin = L.padL - 30;
-      out += `<line x1="${margin}" x2="${margin}" y1="0" y2="${H}" stroke="${RED}" stroke-width="1.2" opacity=".5"/>`;
+      out += `<line x1="${margin}" x2="${margin}" y1="${top}" y2="${H}" stroke="${RED}" stroke-width="1.2" opacity=".5"/>`;
       // Ruled lines. Every Sa is a heavier rule: one saptak between two of them.
       for (let p = L.vLo; p <= L.vHi; p++) {
         const y = L.yOf(p), sa = L.isSa(p);
@@ -77,7 +80,7 @@ window.Looks = (() => {
         out += `<text x="${margin - 12}" y="${y + 8}" text-anchor="end" fill="${sa ? INK : GRAPHITE}" font-family='${DEVA}' font-size="${narrow ? 20 : 24}">${A.degDeva(p)}</text>`;
       }
       // The phrase, handwritten on the top line. Current swara circled in red.
-      const adv = narrow ? 34 : 46, fs = narrow ? 30 : 40, hy = narrow ? 84 : 96;
+      const adv = narrow ? 34 : 46, fs = narrow ? 30 : 40, hy = (narrow ? 84 : 96) + top;
       f.ph.forEach((n, i) => {
         const x = L.padL + i * adv, cur = i === f.cur.i, c = cur ? RED : INK;
         out += `<text x="${x}" y="${hy}" text-anchor="middle" fill="${c}" font-family="${HAND}" font-weight="700" font-size="${fs}">${A.latin(n)}</text>` + A.marks(n, x, hy, fs, c, 2);
