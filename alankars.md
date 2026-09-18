@@ -134,9 +134,9 @@ S' r' g' M#' P' M#' g' r' S'
 P. d. n. S r S n. d. P.
 ```
 
-## 10. Komal Ga and Ni, dropping into mandra
+## 10. Komal Ni resolving up into taar
 
 ```
-g M P n S. g. R. S.
+g M P n S' g' R' S'
 n D P M g R S
 ```
