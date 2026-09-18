@@ -132,7 +132,7 @@ window.Looks = (() => {
         out += `<text x="${L.padL - 18}" y="${y + 5}" text-anchor="end" fill="${sa ? WHITE : DIM}" font-family='${COND}' font-weight="${sa ? 800 : 500}" font-size="16" letter-spacing="1" ${sa ? 'opacity=".7"' : ''}>${A.degLatin(p)}</text>`;
       }
       const cur = f.ph[f.cur.i];
-      out += `<text x="${W / 2}" y="${heroY + H * .05}" text-anchor="middle" fill="${WHITE}" font-family='${DISPLAY}' font-size="${H * .13}" filter="url(#bloom)">${A.deva(cur)}</text>`;
+      out += `<text x="${W / 2}" y="${heroY + H * .05}" text-anchor="middle" fill="${WHITE}" font-family='${DISPLAY}' font-size="${H * .13}">${A.deva(cur)}</text>`;
       const adv = Math.min(40, (W - 80) / Math.max(f.ph.length, 1)), x0 = W / 2 - (f.ph.length - 1) * adv / 2;
       f.ph.forEach((n, i) => {
         const on = i === f.cur.i, c = on ? WHITE : DIM, fs = on ? 34 : 26, x = x0 + i * adv, y = tickY + 30;
