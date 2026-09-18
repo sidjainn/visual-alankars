@@ -2,6 +2,27 @@
 
 Copy one block into the text box. One phrase per line. `S'` is upper Sa, `N.` is lower Ni, lowercase is komal.
 
+## 1. The default score
+
+```
+S
+S R S
+S R G R S
+S R G M G R S
+M
+M G M
+M G R G M
+M G R S R G M
+P
+P D P
+P D N D P
+P D N S' N D P
+S'
+S' N S'
+S' N D N S'
+S' N D P D N S'
+```
+
 ## 1. Growing triangles, full octave
 
 ```
