@@ -293,7 +293,12 @@ function setLook(name) {
   document.body.dataset.look = name;
   lookEl.value = name;
   localStorage.setItem('alankar-look', name);
-  render();
+  // Reel has its own letterboxed frame, so the topbar rides inside it and lands on the
+  // actual colour instead of the black bars around it; every other look fills the whole
+  // stage, so the topbar floats over the stage directly.
+  if (name === 'reel') $('rl-frame').prepend(topbarEl);
+  else $('stage').before(topbarEl);
+  syncTopbarHeight();
 }
 lookEl.onchange = e => setLook(e.target.value);
 
