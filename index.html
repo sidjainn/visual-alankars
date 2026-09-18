@@ -37,6 +37,7 @@
   body.collapsed .sidebar { display: none; }
   body.hide-chrome { grid-template-columns: 1fr; }
   body.hide-chrome .sidebar, body.hide-chrome .topbar { display: none; }
+  #close { display: none; }
   @media (max-width: 700px) {
     body { grid-template-columns: 1fr; }
     .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: min(300px, 88vw); z-index: 10; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
@@ -84,7 +85,6 @@
   .btn-icon svg { width: 16px; height: 16px; }
   .row { display: flex; gap: 8px; }
   .row > .btn { flex: 1; }
-  #close { display: none; }
   :root[data-theme="dark"] .icon-moon, :root:not([data-theme="dark"]) .icon-sun { display: none; }
 
   /* range, after the shadcn slider */
@@ -181,7 +181,6 @@
     <button class="btn btn-primary" id="play">Play</button>
     <button class="btn btn-outline" id="reset">Reset</button>
   </div>
-  <button class="btn btn-outline" id="hide">Hide controls</button>
   <div class="hint">Space plays or pauses, or tap the stage. H hides the controls. When hidden, tap the top left corner to bring them back.</div>
 </aside>
 <main>
@@ -310,11 +309,19 @@ bpmNum.onchange = e => setBpm(e.target.value);
 scoreEl.oninput = () => { localStorage.setItem('alankar-score', scoreEl.value); loadScore(); };
 $('burger').onclick = $('close').onclick = () => { document.body.classList.toggle('collapsed'); render(); };
 const toggleChrome = () => { document.body.classList.toggle('hide-chrome'); render(); };
-$('hide').onclick = $('unhide').onclick = toggleChrome;
+$('unhide').onclick = toggleChrome;
 // Narrow screens start with the sidebar hidden; crossing the breakpoint (a rotate, or a host that sizes the frame late) follows suit.
 const narrow = matchMedia('(max-width: 700px)');
 document.body.classList.toggle('collapsed', narrow.matches);
 narrow.addEventListener('change', e => document.body.classList.toggle('collapsed', e.matches));
+// On a narrow screen the sidebar is a drawer over the stage; tapping outside it closes it, same as the cross button.
+const sidebarEl = document.querySelector('.sidebar');
+document.addEventListener('click', e => {
+  if (!narrow.matches || document.body.classList.contains('collapsed')) return;
+  if (sidebarEl.contains(e.target) || $('burger').contains(e.target)) return;
+  document.body.classList.add('collapsed');
+  render();
+});
 $('stage').onclick = () => player.play();   // tap the stage to play / pause (no keyboard on phones)
 window.addEventListener('resize', render);
 window.addEventListener('keydown', e => {
