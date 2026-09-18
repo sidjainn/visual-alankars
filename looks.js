@@ -115,7 +115,7 @@ window.Looks = (() => {
   const glow = (() => {
     const svg = $('gl-stage');
     const WHITE = '#ffffff', WARM = '#ffd7a3', DIM = 'rgba(255,255,255,.22)', FAINT = 'rgba(255,255,255,.08)';
-    const DISPLAY = '"Yatra One", serif', COND = '"Big Shoulders Display", sans-serif';
+    const COND = '"Big Shoulders Display", sans-serif';
     return f => {
       const W = svg.clientWidth, H = svg.clientHeight;
       if (!W || !H) return;
@@ -123,7 +123,7 @@ window.Looks = (() => {
         <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6" result="b"/><feFlood flood-color="${WARM}" flood-opacity=".9"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         <filter id="bloom" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="18" result="b"/><feFlood flood-color="${WARM}" flood-opacity=".8"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
       if (!f) { svg.innerHTML = out; return; }
-      const heroY = H * .14, tickY = H * .245;
+      const tickY = H * .245;
       const L = A.layout(f.phrases, W, H, { padL: 64, padR: 32, padT: H * .32, padB: H * .06, maxUnit: Math.min(90, W / 8), focus: f.focus });
       // Guide lines. Every Sa is a little brighter: one saptak between two of them.
       for (let p = L.vLo; p <= L.vHi; p++) {
@@ -131,8 +131,6 @@ window.Looks = (() => {
         out += `<line x1="${L.padL}" x2="${W - 20}" y1="${y}" y2="${y}" stroke="${sa ? DIM : FAINT}" stroke-width="${sa ? 1.5 : 1}" ${sa ? '' : 'stroke-dasharray="1 5"'}/>`;
         out += `<text x="${L.padL - 18}" y="${y + 5}" text-anchor="end" fill="${sa ? WHITE : DIM}" font-family='${COND}' font-weight="${sa ? 800 : 500}" font-size="16" letter-spacing="1" ${sa ? 'opacity=".7"' : ''}>${A.degLatin(p)}</text>`;
       }
-      const cur = f.ph[f.cur.i];
-      out += `<text x="${W / 2}" y="${heroY + H * .05}" text-anchor="middle" fill="${WHITE}" font-family='${DISPLAY}' font-size="${H * .13}" filter="url(#bloom)">${A.deva(cur)}</text>`;
       const adv = Math.min(40, (W - 80) / Math.max(f.ph.length, 1)), x0 = W / 2 - (f.ph.length - 1) * adv / 2;
       f.ph.forEach((n, i) => {
         const on = i === f.cur.i, c = on ? WHITE : DIM, fs = on ? 34 : 26, x = x0 + i * adv, y = tickY + 30;
